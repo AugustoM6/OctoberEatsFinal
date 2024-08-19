@@ -19,7 +19,6 @@ public class MainMenuUI extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Crear panel de botones con GridBagLayout
         JPanel buttonPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
@@ -40,14 +39,11 @@ public class MainMenuUI extends JFrame {
         gbc.gridy = 0;
         buttonPanel.add(btnSalir, gbc);
 
-        // Crear panel principal con BorderLayout
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.add(buttonPanel, BorderLayout.CENTER);
 
-        // Añadir panel principal al frame
         add(mainPanel);
 
-        // Añadir listeners a los botones
         btnIniciarSesion.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

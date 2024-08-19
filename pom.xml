@@ -7,13 +7,7 @@
     <groupId>org.example</groupId>
     <artifactId>OctoberEatsFin</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <dependencies>
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>8.4.0</version>
-        </dependency>
-    </dependencies>
+
 
     <properties>
         <maven.compiler.source>22</maven.compiler.source>

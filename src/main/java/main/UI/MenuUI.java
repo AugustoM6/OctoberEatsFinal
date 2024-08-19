@@ -1,7 +1,6 @@
 package main.UI;
 
-import main.Modulos.GestorPedidos;
-import main.Modulos.Pedido;
+import main.Modulos.GestorRestaurantes;
 import main.Modulos.Restaurante;
 import main.Modulos.Usuario;
 
@@ -9,10 +8,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 public class MenuUI extends JFrame {
     private JTextField barraBusqueda;
@@ -24,30 +20,25 @@ public class MenuUI extends JFrame {
     private JButton btnRetroceder;
     private JPanel resultsPanel;
     private Usuario usuario;
-    private GestorPedidos gestorPedidos;
-    private List<Pedido> carrito;
+    private GestorRestaurantes gestorRestaurantes;
 
     public MenuUI(Usuario usuario) {
         this.usuario = usuario;
-        this.gestorPedidos = new GestorPedidos();
-        this.carrito = new ArrayList<>();
+        this.gestorRestaurantes = new GestorRestaurantes();
 
         setTitle("October Eats - Menú Principal");
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Crear panel principal
         JPanel mainPanel = new JPanel(new BorderLayout());
 
-        // Crear panel de búsqueda
         JPanel searchPanel = new JPanel();
         barraBusqueda = new JTextField(20);
         searchButton = new JButton("Buscar");
         searchPanel.add(barraBusqueda);
         searchPanel.add(searchButton);
 
-        // Crear panel de botones
         JPanel buttonPanel = new JPanel(new GridLayout(1, 5));
         btnInicio = new JButton("Inicio");
         btnCarrito = new JButton("Carrito");
@@ -60,20 +51,16 @@ public class MenuUI extends JFrame {
         buttonPanel.add(btnCuenta);
         buttonPanel.add(btnRetroceder);
 
-        // Crear panel de resultados
         resultsPanel = new JPanel();
         resultsPanel.setLayout(new BoxLayout(resultsPanel, BoxLayout.Y_AXIS));
         JScrollPane scrollPane = new JScrollPane(resultsPanel);
 
-        // Añadir componentes al panel principal
         mainPanel.add(searchPanel, BorderLayout.NORTH);
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
         mainPanel.add(scrollPane, BorderLayout.CENTER);
 
-        // Añadir panel principal al frame
         add(mainPanel);
 
-        // Añadir listeners a los botones
         searchButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -116,48 +103,20 @@ public class MenuUI extends JFrame {
             }
         });
 
-        // Mostrar todos los restaurantes al inicio
+        // Muestra todos los restaurantes al inicio
         mostrarTodosLosRestaurantes();
-
-        // Agregar listeners para manejar eventos de pedidos
-        gestorPedidos.addPedidoListener(new GestorPedidos.PedidoListener() {
-            @Override
-            public void onPedidoRealizado(Pedido pedido) {
-                System.out.println("Nuevo pedido realizado: #" + pedido.getIdPedido());
-            }
-
-            @Override
-            public void onEstadoPedidoActualizado(Pedido pedido) {
-                System.out.println("Estado del pedido #" + pedido.getIdPedido() + " actualizado a: " + pedido.getEstado());
-                mostrarPedidos();
-            }
-        });
     }
 
     private void buscarRestaurantes() {
         String busqueda = barraBusqueda.getText().toLowerCase();
         resultsPanel.removeAll();
 
-        if (busqueda != null && !busqueda.trim().isEmpty()) {
-            try {
-                List<Restaurante> resultados = new ArrayList<>();
-                List<Restaurante> todosLosRestaurantes = Restaurante.cargarTodosDesdeBaseDatos();
-
-                for (Restaurante restaurante : todosLosRestaurantes) {
-                    if (restaurante.getNombre().toLowerCase().contains(busqueda) ||
-                            restaurante.getCategoria().toLowerCase().contains(busqueda)) {
-                        resultados.add(restaurante);
-                    }
-                }
-
-                if (resultados.isEmpty()) {
-                    resultsPanel.add(new JLabel("No se encontraron restaurantes"));
-                } else {
-                    mostrarRestaurantes(resultados);
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-                resultsPanel.add(new JLabel("Error al buscar restaurantes"));
+        if (!busqueda.trim().isEmpty()) {
+            List<Restaurante> resultados = gestorRestaurantes.buscarRestaurantes(busqueda);
+            if (resultados.isEmpty()) {
+                resultsPanel.add(new JLabel("No se encontraron restaurantes"));
+            } else {
+                mostrarRestaurantes(resultados);
             }
         } else {
             resultsPanel.add(new JLabel("Input inválido"));
@@ -172,53 +131,14 @@ public class MenuUI extends JFrame {
 
     private void mostrarCarrito() {
         resultsPanel.removeAll();
-        if (carrito.isEmpty()) {
-            resultsPanel.add(new JLabel("El carrito está vacío"));
-        } else {
-            for (Pedido pedido : carrito) {
-                JPanel pedidoPanel = new JPanel(new GridLayout(0, 1));
-                JTextArea pedidoInfo = new JTextArea();
-                pedidoInfo.setText("Pedido ID: " + pedido.getIdPedido() + "\n" +
-                        "Restaurante: " + pedido.getRestaurante().getNombre() + "\n" +
-                        "Estado: " + pedido.getEstado() + "\n" +
-                        "Precio: $" + pedido.getPrecio());
-                pedidoInfo.setEditable(false);
-                JButton btnRealizarPedido = new JButton("Realizar Pedido");
-                btnRealizarPedido.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        gestorPedidos.realizarPedido(usuario, pedido.getRestaurante(), pedido.getPrecio());
-                        carrito.remove(pedido);
-                        mostrarCarrito();
-                    }
-                });
-                pedidoPanel.add(pedidoInfo);
-                pedidoPanel.add(btnRealizarPedido);
-                resultsPanel.add(pedidoPanel);
-            }
-        }
+        resultsPanel.add(new JLabel("El carrito está vacío"));
         resultsPanel.revalidate();
         resultsPanel.repaint();
     }
 
     private void mostrarPedidos() {
         resultsPanel.removeAll();
-        List<Pedido> pedidosUsuario = gestorPedidos.getPedidosUsuario(usuario);
-        if (pedidosUsuario.isEmpty()) {
-            resultsPanel.add(new JLabel("No tienes pedidos en este momento"));
-        } else {
-            for (Pedido pedido : pedidosUsuario) {
-                JPanel pedidoPanel = new JPanel(new GridLayout(0, 1));
-                JTextArea pedidoInfo = new JTextArea();
-                pedidoInfo.setText("Pedido ID: " + pedido.getIdPedido() + "\n" +
-                        "Restaurante: " + pedido.getRestaurante().getNombre() + "\n" +
-                        "Estado: " + pedido.getEstado() + "\n" +
-                        "Precio: $" + pedido.getPrecio());
-                pedidoInfo.setEditable(false);
-                pedidoPanel.add(pedidoInfo);
-                resultsPanel.add(pedidoPanel);
-            }
-        }
+        resultsPanel.add(new JLabel("No tienes pedidos en este momento"));
         resultsPanel.revalidate();
         resultsPanel.repaint();
     }
@@ -228,12 +148,14 @@ public class MenuUI extends JFrame {
     }
 
     private void mostrarTodosLosRestaurantes() {
-        try {
-            mostrarRestaurantes(Restaurante.cargarTodosDesdeBaseDatos());
-        } catch (SQLException e) {
-            e.printStackTrace();
-            resultsPanel.add(new JLabel("Error al cargar restaurantes"));
+        List<Restaurante> todosLosRestaurantes = gestorRestaurantes.getTodosLosRestaurantes();
+        if (todosLosRestaurantes.isEmpty()) {
+            resultsPanel.add(new JLabel("No hay restaurantes disponibles"));
+        } else {
+            mostrarRestaurantes(todosLosRestaurantes);
         }
+        resultsPanel.revalidate();
+        resultsPanel.repaint();
     }
 
     private void mostrarRestaurantes(List<Restaurante> restaurantes) {
@@ -246,27 +168,11 @@ public class MenuUI extends JFrame {
                     "Email: " + restaurante.getEmail() + "\n" +
                     "Categoría: " + restaurante.getCategoria());
             restauranteInfo.setEditable(false);
-            JButton btnAgregarCarrito = new JButton("Agregar al carrito");
-            btnAgregarCarrito.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    agregarAlCarrito(restaurante);
-                }
-            });
             restaurantePanel.add(restauranteInfo);
-            restaurantePanel.add(btnAgregarCarrito);
             resultsPanel.add(restaurantePanel);
         }
         resultsPanel.revalidate();
         resultsPanel.repaint();
-    }
-
-    private void agregarAlCarrito(Restaurante restaurante) {
-        Random random = new Random();
-        double precio = 10 + (40 - 10) * random.nextDouble(); // Precio aleatorio
-        Pedido pedido = new Pedido(carrito.size() + 1, usuario, restaurante, precio);
-        carrito.add(pedido);
-        JOptionPane.showMessageDialog(this, "Pedido agregado al carrito: " + restaurante.getNombre() + " - $" + precio);
     }
 
     private void retrocederAlMenuPrincipal() {
