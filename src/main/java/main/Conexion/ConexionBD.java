@@ -1,10 +1,6 @@
 package main.Conexion;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class ConexionBD {
     private Connection conexion = null;
@@ -13,7 +9,7 @@ public class ConexionBD {
 
     private static final String URL = "jdbc:mysql://localhost:3306/OctoberEats";
     private static final String USER = "root";
-    private static final String PASSWORD = "CesarM60";
+    private static final String PASSWORD = "12345";
 
     public void setConexion() throws SQLException {
         try {

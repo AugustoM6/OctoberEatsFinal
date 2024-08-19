@@ -1,4 +1,3 @@
-
 package main.UI;
 
 import main.Modulos.Usuario;
@@ -12,12 +11,11 @@ import java.sql.SQLException;
 public class MainMenuUI extends JFrame {
     private JButton btnIniciarSesion;
     private JButton btnRegistrarse;
-    private JButton btnRegistrarRestaurante;
     private JButton btnSalir;
 
     public MainMenuUI() {
         setTitle("October Eats - Menú Principal");
-        setSize(600, 100);
+        setSize(400, 100);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -28,7 +26,6 @@ public class MainMenuUI extends JFrame {
 
         btnIniciarSesion = new JButton("Iniciar Sesión");
         btnRegistrarse = new JButton("Registrarse");
-        btnRegistrarRestaurante = new JButton("Registrar Restaurante");
         btnSalir = new JButton("Salir");
 
         gbc.gridx = 0;
@@ -40,10 +37,6 @@ public class MainMenuUI extends JFrame {
         buttonPanel.add(btnRegistrarse, gbc);
 
         gbc.gridx = 2;
-        gbc.gridy = 0;
-        buttonPanel.add(btnRegistrarRestaurante, gbc);
-
-        gbc.gridx = 3;
         gbc.gridy = 0;
         buttonPanel.add(btnSalir, gbc);
 
@@ -66,13 +59,6 @@ public class MainMenuUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 registrarUsuario();
-            }
-        });
-
-        btnRegistrarRestaurante.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                autenticarParaRegistrarRestaurante();
             }
         });
 
@@ -118,39 +104,5 @@ public class MainMenuUI extends JFrame {
         RegistoUserUI registoUserUI = new RegistoUserUI();
         registoUserUI.setVisible(true);
         this.dispose();
-
-
-    }
-
-    private void autenticarParaRegistrarRestaurante() {
-        JTextField correoField = new JTextField();
-        JPasswordField contrasenaField = new JPasswordField();
-        Object[] message = {
-                "Correo:", correoField,
-                "Contraseña:", contrasenaField
-        };
-
-        int option = JOptionPane.showConfirmDialog(null, message, "Autenticación para Registrar Restaurante", JOptionPane.OK_CANCEL_OPTION);
-        if (option == JOptionPane.OK_OPTION) {
-            String correo = correoField.getText();
-            String contrasena = new String(contrasenaField.getPassword());
-
-            try {
-                Usuario usuario = Usuario.loadByCorreo(correo);
-                if (usuario != null && usuario.verifyPassword(contrasena)) {
-                    JOptionPane.showMessageDialog(null, "Autenticación exitosa", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                    RegistrarRestauranteUI registrarRestauranteUI = new RegistrarRestauranteUI();
-                    registrarRestauranteUI.setVisible(true);
-                    this.dispose();
-                } else {
-                    JOptionPane.showMessageDialog(null, "Correo o contraseña incorrectos", "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            } catch (SQLException e) {
-                JOptionPane.showMessageDialog(null, "Error en la autenticación: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                e.printStackTrace();
-            }
-        }
     }
 }
-
-

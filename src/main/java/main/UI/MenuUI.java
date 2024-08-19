@@ -1,4 +1,3 @@
-
 package main.UI;
 
 import main.Modulos.GestorPedidos;
@@ -14,7 +13,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Collectors;
 
 public class MenuUI extends JFrame {
     private JTextField barraBusqueda;
@@ -23,6 +21,7 @@ public class MenuUI extends JFrame {
     private JButton btnCarrito;
     private JButton btnPedidos;
     private JButton btnCuenta;
+    private JButton btnRetroceder;
     private JPanel resultsPanel;
     private Usuario usuario;
     private GestorPedidos gestorPedidos;
@@ -49,15 +48,17 @@ public class MenuUI extends JFrame {
         searchPanel.add(searchButton);
 
         // Crear panel de botones
-        JPanel buttonPanel = new JPanel(new GridLayout(1, 4));
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 5));
         btnInicio = new JButton("Inicio");
         btnCarrito = new JButton("Carrito");
         btnPedidos = new JButton("Pedidos");
         btnCuenta = new JButton("Cuenta");
+        btnRetroceder = new JButton("Retroceder");
         buttonPanel.add(btnInicio);
         buttonPanel.add(btnCarrito);
         buttonPanel.add(btnPedidos);
         buttonPanel.add(btnCuenta);
+        buttonPanel.add(btnRetroceder);
 
         // Crear panel de resultados
         resultsPanel = new JPanel();
@@ -108,6 +109,13 @@ public class MenuUI extends JFrame {
             }
         });
 
+        btnRetroceder.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                retrocederAlMenuPrincipal();
+            }
+        });
+
         // Mostrar todos los restaurantes al inicio
         mostrarTodosLosRestaurantes();
 
@@ -127,14 +135,20 @@ public class MenuUI extends JFrame {
     }
 
     private void buscarRestaurantes() {
-        String busqueda = barraBusqueda.getText();
+        String busqueda = barraBusqueda.getText().toLowerCase();
         resultsPanel.removeAll();
+
         if (busqueda != null && !busqueda.trim().isEmpty()) {
             try {
-                List<Restaurante> resultados = Restaurante.cargarTodosDesdeBaseDatos().stream()
-                        .filter(r -> r.getNombre().toLowerCase().contains(busqueda.toLowerCase())
-                                || r.getCategoria().toLowerCase().contains(busqueda.toLowerCase()))
-                        .collect(Collectors.toList());
+                List<Restaurante> resultados = new ArrayList<>();
+                List<Restaurante> todosLosRestaurantes = Restaurante.cargarTodosDesdeBaseDatos();
+
+                for (Restaurante restaurante : todosLosRestaurantes) {
+                    if (restaurante.getNombre().toLowerCase().contains(busqueda) ||
+                            restaurante.getCategoria().toLowerCase().contains(busqueda)) {
+                        resultados.add(restaurante);
+                    }
+                }
 
                 if (resultados.isEmpty()) {
                     resultsPanel.add(new JLabel("No se encontraron restaurantes"));
@@ -253,5 +267,11 @@ public class MenuUI extends JFrame {
         Pedido pedido = new Pedido(carrito.size() + 1, usuario, restaurante, precio);
         carrito.add(pedido);
         JOptionPane.showMessageDialog(this, "Pedido agregado al carrito: " + restaurante.getNombre() + " - $" + precio);
+    }
+
+    private void retrocederAlMenuPrincipal() {
+        MainMenuUI mainMenu = new MainMenuUI();
+        mainMenu.setVisible(true);
+        dispose();
     }
 }
